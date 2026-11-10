@@ -59,6 +59,7 @@ import androidx.media3.exoplayer.upstream.BandwidthMeter
 import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
+import androidx.media3.session.CacheBitmapLoader
 import androidx.media3.session.CommandButton
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.LibraryResult
@@ -1862,8 +1863,14 @@ class PlaybackService : MediaLibraryService() {
         )
             .setId(SESSION_ID)
             .setSessionActivity(sessionActivity())
+            // Lock screen / notification artwork through the app's own image
+            // loader, cached so a track change doesn't decode the cover twice.
+            .setBitmapLoader(CacheBitmapLoader(CoilBitmapLoader(this, scope)))
             .build()
         refreshCustomLayouts()
+
+        // Lock screen cover: asks the player at the moment the screen wakes.
+        lockArtReceiver = LockScreenArt.register(this) { player?.isPlaying == true }
 
         // Last, so a receiver that outlived the app is adopted by a service
         // whose queue is already restored.
@@ -7607,7 +7614,11 @@ class PlaybackService : MediaLibraryService() {
     }
 
 
+    private var lockArtReceiver: android.content.BroadcastReceiver? = null
+
     override fun onDestroy() {
+        lockArtReceiver?.let { runCatching { unregisterReceiver(it) } }
+        lockArtReceiver = null
         WearBridge.attachStreams(null)
         WearBridge.releaseSpeaker()
         // Let go of the receiver's player but leave its session alone: a

@@ -36,6 +36,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.ScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.automirrored.rounded.Notes
 import androidx.compose.material.icons.automirrored.rounded.VolumeOff
 import androidx.compose.material.icons.rounded.Animation
@@ -54,6 +55,7 @@ import androidx.compose.material.icons.rounded.FileDownload
 import androidx.compose.material.icons.rounded.FileUpload
 import androidx.compose.material.icons.rounded.FilterAlt
 import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Fullscreen
 import androidx.compose.material.icons.rounded.Gradient
 import androidx.compose.material.icons.rounded.GraphicEq
@@ -124,6 +126,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import com.music.bitchord.playback.LockScreenArt
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -280,6 +283,7 @@ fun SettingsScreen(
     val syncDownloadedPlaylists by AppSettings.syncDownloadedPlaylists.collectAsStateWithLifecycle()
     val stopOnTaskRemoved by AppSettings.stopOnTaskRemoved.collectAsStateWithLifecycle()
     val hideVolumeBar by AppSettings.hideVolumeBar.collectAsStateWithLifecycle()
+    val lockScreenArt by AppSettings.lockScreenArt.collectAsStateWithLifecycle()
     val hideStatusBarInPlayer by AppSettings.hideStatusBarInPlayer.collectAsStateWithLifecycle()
     val hideSongStatus by AppSettings.hideSongStatus.collectAsStateWithLifecycle()
     val showQueueHistory by AppSettings.showQueueHistory.collectAsStateWithLifecycle()
@@ -1249,6 +1253,39 @@ fun SettingsScreen(
                     )
                 }
             }
+            val scanMusicTitle = stringResource(R.string.scan_for_new_music)
+            var scanningMusic by remember { mutableStateOf(false) }
+            row(scanMusicTitle, "scan", "refresh", "rescan", "new songs", "library") {
+                SettingsRow(
+                    icon = Icons.Rounded.Refresh,
+                    title = scanMusicTitle,
+                    subtitle = stringResource(
+                        if (scanningMusic) R.string.scanning_music else R.string.scan_for_new_music_subtitle,
+                    ),
+                    onClick = {
+                        if (!scanningMusic) {
+                            if (!LocalMediaRepository.hasStoragePermission(context)) {
+                                android.widget.Toast.makeText(
+                                    context,
+                                    context.getString(R.string.storage_required_read),
+                                    android.widget.Toast.LENGTH_SHORT,
+                                ).show()
+                            } else {
+                                scanningMusic = true
+                                backupScope.launch {
+                                    val gained = runCatching { LocalMediaRepository.rescan(context) }.getOrDefault(0)
+                                    scanningMusic = false
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        context.resources.getQuantityString(R.plurals.scan_found_new_songs, gained, gained),
+                                        android.widget.Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
+                            }
+                        }
+                    },
+                )
+            }
             val filterNonMusicAudioTitle = stringResource(R.string.filter_non_music_audio)
             row(filterNonMusicAudioTitle, "podcast", "recording") {
                 SettingsRow(
@@ -1474,6 +1511,43 @@ fun SettingsScreen(
                         )
                     },
                     onClick = { AppSettings.setShowListenTogetherButton(!listenTogetherButton) },
+                )
+            }
+            val lockScreenArtTitle = stringResource(R.string.lock_screen_art)
+            row(lockScreenArtTitle, "lock screen", "album art", "cover", "player") {
+                val lockCtx = LocalContext.current
+                SettingsRow(
+                    icon = Icons.Rounded.Lock,
+                    title = lockScreenArtTitle,
+                    subtitle = stringResource(R.string.lock_screen_art_subtitle),
+                    trailing = {
+                        IosSwitch(
+                            checked = lockScreenArt,
+                            onCheckedChange = { on ->
+                                AppSettings.setLockScreenArt(on)
+                                if (on) LockScreenArt.ensureAccess(lockCtx)
+                            },
+                        )
+                    },
+                    onClick = {
+                        val on = !lockScreenArt
+                        AppSettings.setLockScreenArt(on)
+                        if (on) LockScreenArt.ensureAccess(lockCtx)
+                    },
+                )
+            }
+            val lockScreenArtPreviewTitle = stringResource(R.string.lock_screen_art_preview)
+            row(lockScreenArtPreviewTitle, "lock screen", "album art", "preview", "test") {
+                val previewCtx = LocalContext.current
+                SettingsRow(
+                    icon = Icons.Rounded.Lock,
+                    title = lockScreenArtPreviewTitle,
+                    subtitle = stringResource(R.string.lock_screen_art_preview_subtitle),
+                    onClick = {
+                        previewCtx.startActivity(
+                            Intent(previewCtx, com.music.bitchord.playback.LockArtActivity::class.java),
+                        )
+                    },
                 )
             }
             val hideStatusBarTitle = stringResource(R.string.hide_status_bar_in_player)

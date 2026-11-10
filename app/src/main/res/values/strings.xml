@@ -1300,4 +1300,20 @@
     <string name="no_audio_version">No audio version found for this video</string>
     <string name="no_video_version">No video version found for this song</string>
     <string name="version_switch_in_party">Everyone in Listen Together hears the same version</string>
+    <string name="lock_screen_art">Lock screen album art</string>
+    <string name="lock_screen_art_subtitle">While music plays, show the cover full screen over the lock screen. Swipe up to reach the normal lock screen.</string>
+    <string name="lock_screen_art_preview">Preview lock screen art</string>
+    <string name="lock_screen_art_preview_subtitle">Open the cover screen now, to check how it looks</string>
+    <string name="lock_screen_art_tile">Lock screen art</string>
+    <string name="show_more">Show top 25</string>
+    <string name="show_less">Show less</string>
+    <string name="scan_for_new_music">Scan for new music</string>
+    <string name="scan_for_new_music_subtitle">Look for songs added to this device since the last scan</string>
+    <string name="scanning_music">Scanning…</string>
+    <plurals name="scan_found_new_songs">
+        <item quantity="one">Scan finished: %1$d new song</item>
+        <item quantity="other">Scan finished: %1$d new songs</item>
+    </plurals>
+    <string name="shuffle_all_results">Shuffle all (%1$d)</string>
+    <string name="add_all_results">Add all to queue (%1$d)</string>
 </resources>

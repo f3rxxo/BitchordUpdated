@@ -100,19 +100,6 @@ object LocalPlaylistStore {
         return added
     }
 
-    /** Takes [song] out of the playlist [id]. */
-    fun removeSong(id: String, song: Song) {
-        val cleanId = id.removePrefix("local:playlist:").removePrefix("VL")
-        val key = song.localUri ?: song.videoId
-        val updated = _playlists.value.map { p ->
-            if (p.id == cleanId || p.id == id || p.browseId == id) {
-                p.copy(songs = p.songs.filterNot { (it.localUri ?: it.videoId) == key })
-            } else p
-        }
-        _playlists.value = updated
-        persist(updated)
-    }
-
     fun deletePlaylist(id: String) {
         val updated = _playlists.value.filterNot { it.id == id || it.browseId == id || it.id == id.removePrefix("local:playlist:") }
         _playlists.value = updated

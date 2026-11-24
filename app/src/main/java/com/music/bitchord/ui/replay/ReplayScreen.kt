@@ -102,6 +102,8 @@ fun ReplayScreen(
     onPeriodChange: (ReplayPeriod) -> Unit,
     onOpenStory: (ReplayStoryPage) -> Unit,
     onPlaySong: (Song) -> Unit,
+    /** Plays the whole top-songs list (up to 25) in random order. */
+    onShuffleSongs: (List<Song>) -> Unit,
     /**
      * Opens the artist's page. The browse id is null for most rows — an artist
      * is counted by name, and the id only rides along when the track that
@@ -213,6 +215,15 @@ fun ReplayScreen(
                         } else null,
                         onClick = { index ->
                             summary.songs.getOrNull(index)?.let { onPlaySong(it.song) }
+                        },
+                        header = {
+                            ReplayActionRow(
+                                BitChordIcons.Shuffle,
+                                stringResource(R.string.shuffle_top_songs),
+                                dark,
+                            ) {
+                                onShuffleSongs(summary.songs.take(SONGS_EXPANDED_LENGTH).map { it.song })
+                            }
                         },
                     )
                     chart(
@@ -456,9 +467,11 @@ private fun LazyListScope.chart(
     onClick: (Int) -> Unit,
     circular: Boolean = false,
     toggle: ChartToggle? = null,
+    header: (@Composable () -> Unit)? = null,
 ) {
     if (rows.isEmpty()) return
     item("$key-title") { SectionTitle(title, dark) }
+    if (header != null) item("$key-header") { header() }
     // The rank is in the key so two rows can never share one: a duplicate key
     // crashes the whole list, and the data behind these rows is years of files
     // written by older builds.

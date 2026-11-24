@@ -3203,6 +3203,18 @@ private fun BitChordApp(
                                 onPlaySong = { song ->
                                     playRadio(song, QueueSource(replayLabel, PlaybackSourceType.REPLAY))
                                 },
+                                onShuffleSongs = { songs ->
+                                    if (songs.isNotEmpty()) {
+                                        // Shuffle goes on first so the queue is built
+                                        // shuffled; the random pick only chooses the lead.
+                                        QueueShuffle.enableForNextQueue()
+                                        playFrom(
+                                            songs,
+                                            songs.indices.random(),
+                                            QueueSource(replayLabel, PlaybackSourceType.REPLAY),
+                                        )
+                                    }
+                                },
                                 // Pushed over Replay, so back returns to it.
                                 onOpenArtist = { id, name ->
                                     openByName(id, name, null, BrowseType.ARTIST)

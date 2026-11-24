@@ -1375,6 +1375,7 @@
     <string name="lock_screen_art_preview">Preview lock screen art</string>
     <string name="lock_screen_art_preview_subtitle">Open the cover screen now, to check how it looks</string>
     <string name="lock_screen_art_tile">Lock screen art</string>
+    <string name="shuffle_top_songs">Shuffle top songs</string>
     <string name="show_more">Show top 25</string>
     <string name="show_less">Show less</string>
     <string name="scan_for_new_music">Scan for new music</string>
